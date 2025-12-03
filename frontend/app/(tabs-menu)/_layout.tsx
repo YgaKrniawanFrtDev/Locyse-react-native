@@ -25,7 +25,7 @@ export default function TabsLayout() {
               colors={["#FFFFFF", "#F5F6FA"]}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
-              style={styles.tabBarGradient}
+            style={styles.tabBarGradient}
             />
           </View>
         ),

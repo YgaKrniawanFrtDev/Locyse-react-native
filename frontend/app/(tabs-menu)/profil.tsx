@@ -26,7 +26,7 @@ export default function profil() {
         </View>
       </LinearGradient>
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Biodata</Text>
+      <Text style={styles.sectionTitle}>Biodata</Text>
         <View style={styles.activityCard}>
           <View style={styles.activityIcon}>
             <Ionicons name="person" size={20} color="#6C63FF" />
