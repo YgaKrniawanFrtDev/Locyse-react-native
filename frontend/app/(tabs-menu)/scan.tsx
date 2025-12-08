@@ -6,7 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useState, useRef } from 'react';
 import LottieView from 'lottie-react-native';
 
-const API_BASE_URL = 'http://localhost:8000/api/v1';
+const API_URL = "http://10.162.74.31:8000/api/scan"; 
 
 export default function ScanScreen() {
   const [permission, requestPermission] = useCameraPermissions();
@@ -23,9 +23,8 @@ export default function ScanScreen() {
     if (permission?.granted) setIsCameraReady(true);
   }, [permission]);
 
-  // Mock user ID - in real app, get from auth/storage
   useEffect(() => {
-    setUserId(1); // Default to first user for demo
+    setUserId(1);
   }, []);
 
   if (!permission) {
@@ -38,33 +37,27 @@ export default function ScanScreen() {
 
   const handleBarcodeScanned = async (result: BarcodeScanningResult) => {
     const now = Date.now();
-    // Prevent duplicate scans within 2 seconds
-    if (now - lastScannedTime < 2000) {
-      return;
-    }
+
+    if (now - lastScannedTime < 2500) return;
+    if (isLoading) return;
 
     setLastScannedTime(now);
+
     const token = result.data;
+
     setScannedToken(token);
-    
-    if (!userId) {
-      Alert.alert('Error', 'User ID not found. Please login again.');
-      return;
-    }
-
-    await submitAttendance(token);
   };
+  const submitAttendance = async () => {
+    if (!scannedToken) return;
 
-  const submitAttendance = async (token: string) => {
     setIsLoading(true);
+
     try {
-      const response = await fetch(`${API_BASE_URL}/attendance/scan`, {
+      const response = await fetch(API_URL, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          token,
+          token: scannedToken,
           user_id: userId,
           status: attendanceStatus,
         }),
@@ -74,136 +67,109 @@ export default function ScanScreen() {
 
       if (data.success) {
         setShowSuccess(true);
-        Alert.alert('Success', `Attendance recorded: ${attendanceStatus}`);
+
         setTimeout(() => {
           setShowSuccess(false);
-          setScannedToken(null);
+          setScannedToken(null); 
         }, 2000);
       } else {
-        Alert.alert('Error', data.message || 'Failed to record attendance');
+        Alert.alert("Error", data.message || "Gagal menyimpan absensi");
       }
-    } catch (error) {
-      Alert.alert('Error', 'Failed to connect to server. Make sure API is running.');
-      console.error('Attendance error:', error);
-    } finally {
-      setIsLoading(false);
+
+    } catch (err) {
+      Alert.alert("Error", "Tidak bisa terhubung ke server");
     }
+
+    setIsLoading(false);
   };
 
   const handleCancel = () => {
     setScannedToken(null);
-    setShowSuccess(false);
-  };
-
-  const handleConfirm = async () => {
-    if (scannedToken) {
-      await submitAttendance(scannedToken);
-    }
   };
 
   const toggleStatus = () => {
-    setAttendanceStatus(attendanceStatus === 'masuk' ? 'pulang' : 'masuk');
+    setAttendanceStatus(attendanceStatus === "masuk" ? "pulang" : "masuk");
   };
-
-  if (!permission) {
-    return (
-      <View style={styles.center}>
-        <Text>Loading...</Text>
-      </View>
-    );
-  }
 
   if (!permission.granted) {
     return (
       <View style={styles.container}>
-        <LinearGradient
-          colors={['#7C3AED', '#4F46E5']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={styles.header}>
-          <View style={styles.headerContent}>
-            <View>
-              <View style={styles.profile}>
-                <View>
-                  <Text style={styles.username}>Scan Barcode</Text>
-                </View>
-              </View>
-            </View>
-          </View>
-        </LinearGradient>
-        <View style={styles.center}>
-          <Text style={{ textAlign: 'center', padding: 20 }}>
-            Akses kamera dibutuhkan untuk scan QR.
-          </Text>
-          <TouchableOpacity onPress={requestPermission} style={styles.permissionBtn}>
-            <Text style={{ color: '#4F46E5', fontWeight: '600' }}>
-              Izinkan Sekarang
-            </Text>
-          </TouchableOpacity>
-        </View>
+        <Text>Izinkan kamera untuk scan QR.</Text>
+        <TouchableOpacity onPress={requestPermission} style={styles.permissionBtn}>
+          <Text style={{ color: "#4F46E5" }}>Izinkan Sekarang</Text>
+        </TouchableOpacity>
       </View>
     );
   }
 
   return (
     <View style={styles.container}>
+      
       <LinearGradient
-        colors={['#7C3AED', '#4F46E5']}
+        colors={["#7C3AED", "#4F46E5"]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
-        style={styles.header}>
+        style={styles.header}
+      >
         <View style={styles.headerContent}>
-          <View>
-            <View style={styles.profile}>
-              <View>
-                <Text style={styles.username}>Scan Barcode</Text>
-                <Text style={styles.statusText}>
-                  Status: {attendanceStatus === 'masuk' ? '🟢 Check In' : '🔴 Check Out'}
-                </Text>
-              </View>
-              <TouchableOpacity style={styles.iconProfile} onPress={toggleStatus}>
-                <View style={styles.iconContainer}>
-                  <Ionicons name="swap-vertical" size={30} color="#7C3AED" />
-                </View>
-              </TouchableOpacity>
+          <View style={styles.profile}>
+            <View>
+              <Text style={styles.username}>Scan Barcode</Text>
+              <Text style={styles.statusText}>
+                Status: {attendanceStatus === "masuk" ? "🟢 Check In" : "🔴 Check Out"}
+              </Text>
             </View>
+
+            <TouchableOpacity style={styles.iconProfile} onPress={toggleStatus}>
+              <View style={styles.iconContainer}>
+                <Ionicons name="swap-vertical" size={30} color="#7C3AED" />
+              </View>
+            </TouchableOpacity>
+
           </View>
         </View>
       </LinearGradient>
 
       <View style={styles.body}>
+        
         <Text style={styles.scanTitle}>Scan Barcode Absensi!</Text>
+
         <View style={styles.frameContainer}>
           <CameraView
             ref={cameraRef}
             style={styles.camera}
             facing="back"
             onCameraReady={() => setIsCameraReady(true)}
-            onBarcodeScanned={isCameraReady && !isLoading ? handleBarcodeScanned : undefined}
+            onBarcodeScanned={!isLoading ? handleBarcodeScanned : undefined}
             barcodeScannerSettings={{
-              barcodeTypes: ['qr', 'code128', 'code39', 'ean13'],
+              barcodeTypes: ["qr", "code128", "code39", "ean13"],
             }}
           />
+
           {scannedToken && (
             <View style={styles.scannedOverlay}>
-              <Text style={styles.scannedText}>Token: {scannedToken.substring(0, 8)}...</Text>
+              <Text style={styles.scannedText}>
+                Token: {scannedToken.substring(0, 10)}...
+              </Text>
             </View>
           )}
         </View>
 
         {scannedToken && (
           <View style={styles.buttonGroup}>
-            <TouchableOpacity 
+
+            <TouchableOpacity
               style={styles.cancelButton}
               onPress={handleCancel}
               disabled={isLoading}
             >
-              <Ionicons name='close' size={20} color={'#7C3AED'}/>
+              <Ionicons name="close" size={20} color={"#7C3AED"} />
               <Text style={styles.cancelText}>Batalkan</Text>
             </TouchableOpacity>
-            <TouchableOpacity 
+
+            <TouchableOpacity
               style={[styles.confirmButton, isLoading && styles.confirmButtonDisabled]}
-              onPress={handleConfirm}
+              onPress={submitAttendance}
               disabled={isLoading}
             >
               {isLoading ? (
@@ -211,17 +177,18 @@ export default function ScanScreen() {
               ) : (
                 <>
                   <Text style={styles.confirmText}>Absen Sekarang</Text>
-                  <Ionicons name='checkmark' size={20} color={'white'}/>
+                  <Ionicons name="checkmark" size={20} color={"white"} />
                 </>
               )}
             </TouchableOpacity>
+
           </View>
         )}
 
         {showSuccess && (
           <View style={styles.successOverlay}>
             <LottieView
-              source={require('../../assets/lottie/Scan QR Code Success.json')}
+              source={require("../../assets/lottie/Scan QR Code Success.json")}
               autoPlay
               loop={false}
               style={styles.lottie}
@@ -229,6 +196,7 @@ export default function ScanScreen() {
             <Text style={styles.successText}>Attendance Recorded!</Text>
           </View>
         )}
+
       </View>
 
       {!isCameraReady && (
@@ -240,6 +208,7 @@ export default function ScanScreen() {
     </View>
   );
 }
+
 
 const styles = StyleSheet.create({
   container: {

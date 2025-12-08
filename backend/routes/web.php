@@ -4,6 +4,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\UsersController;
 use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\ScanBarcodeController;
+use App\Http\Controllers\TestQr;
 use Illuminate\Support\Facades\Route;
  
 // Admin panel routes
@@ -13,4 +14,5 @@ Route::prefix('admin')->name('admin.')->group(function () {
     Route::get('/scan-barcode', [ScanBarcodeController::class, 'index'])->name('scan-barcode.index');
     Route::get('/attendance', [AttendanceController::class, 'index'])->name('attendance.index');
     Route::get('/users', [UsersController::class, 'index'])->name('users.index');
+    Route::get('/test', [TestQr::class, 'index'])->name('testqr.index');
 });

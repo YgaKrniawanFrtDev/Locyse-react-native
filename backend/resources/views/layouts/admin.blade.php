@@ -16,10 +16,6 @@
                     <span>Admin Panel</span>
                 </div>
                 <nav class="admin-menu">
-                    <a href="{{ route('admin.dashboard') }}" class="admin-menu-item @if(request()->routeIs('admin.dashboard')) active @endif">
-                        <i class="menu-icon bi bi-graph-up"></i>
-                        <span>Dashboard</span>
-                    </a>
                     <a href="{{ route('admin.scan-barcode.index') }}" class="admin-menu-item @if(request()->routeIs('admin.scan-barcode.*')) active @endif">
                         <i class="menu-icon bi bi-qr-code"></i>
                         <span>Scan Barcode</span>
@@ -27,10 +23,6 @@
                     <a href="{{ route('admin.attendance.index') }}" class="admin-menu-item @if(request()->routeIs('admin.attendance.*')) active @endif">
                         <i class="menu-icon bi bi-check-circle"></i>
                         <span>Attendance</span>
-                    </a>
-                    <a href="{{ route('admin.users.index') }}" class="admin-menu-item @if(request()->routeIs('admin.users.*')) active @endif">
-                        <i class="menu-icon bi bi-people"></i>
-                        <span>Users</span>
                     </a>
                 </nav>
             </aside>
